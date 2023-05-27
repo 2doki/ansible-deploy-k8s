@@ -12,7 +12,7 @@
 ```
 * *使用*
 ```
-- 根据项目下的hosts文件node_name设置节点的主机名: hostnamectl set-hostname node_name
+- 根据项目下的hosts文件node_name设置节点的主机名: hostnamectl set-hostname {{node_name}}
 - 下载本项目到本地,在项目的根目录运行: pdm install 安装ansible依赖
 - 在项目的根目录运行: pdm run ansible-playbook master.yaml部署k8s-master节点
 - 在项目的根目录运行: pdm run ansible-playbook worker.yaml部署k8s-worker节点

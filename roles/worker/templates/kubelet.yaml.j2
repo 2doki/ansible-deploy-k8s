@@ -1,0 +1,32 @@
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: 0.0.0.0
+port: 10250
+readOnlyPort: 0
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 2m0s
+    enabled: true
+  x509:
+    clientCAFile: {{k8s_path}}/cert/ca.pem
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 5m0s
+    cacheUnauthorizedTTL: 30s
+cgroupDriver: systemd
+clusterDNS:
+- {{cluster_dns}}
+clusterDomain: cluster.local
+healthzBindAddress: 127.0.0.1
+healthzPort: 10248
+rotateCertificates: true
+evictionHard:
+  imagefs.available: 15%
+  memory.available: 100Mi
+  nodefs.available: 10%
+  nodefs.inodesFree: 5%
+maxOpenFiles: 1000000
+maxPods: 110

@@ -1,0 +1,28 @@
+{% set number=cert_ips.k8s | length %}
+{
+    "CN": "kubernetes",
+    "hosts": [
+      "127.0.0.1",
+      {% for ip in cert_ips.k8s %}
+      "{{ ip }}",
+      {% endfor %}
+      "kubernetes",
+      "kubernetes.default",
+      "kubernetes.default.svc",
+      "kubernetes.default.svc.cluster",
+      "kubernetes.default.svc.cluster.local"
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Chengdu",
+            "ST": "Sichuan",
+            "O": "k8s",
+            "OU": "system"
+        }
+    ]
+}

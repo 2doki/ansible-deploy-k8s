@@ -1,0 +1,16 @@
+# 集群数据库节点,与all.yaml文件的cert_ips.etcd中运行etcd服务主机保持一直
+[etcd]
+192.168.165.81 etcd_name=etcd-01 ansible_sudo_pass=123456
+
+# 集群master节点,与all.yaml文件的cert_ips.k8s中运行k8s-master节点服务主机保持一直
+[master]
+192.168.165.81 node_name=k8s-master-01 ansible_sudo_pass=123456
+
+# 集群worker节点
+[worker]
+192.168.165.83 node_name=k8s-worker-01 ansible_sudo_pass=123456
+
+# 集群信息
+[k8s:children]
+master
+worker

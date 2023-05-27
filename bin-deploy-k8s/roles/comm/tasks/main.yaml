@@ -1,0 +1,29 @@
+---
+
+- name: 关闭主机的swap
+  lineinfile: 
+    dest: /etc/fstab 
+    regexp: ".*swap"
+    line: ""
+
+- name: 关闭swap即时生效
+  shell: setenforce 0 ; swapoff -a
+
+- name: 节点时区设置
+  shell: |
+    timedatectl set-local-rtc 0
+    timedatectl set-timezone Asia/Shanghai
+
+- name: 添加hosts主机信息
+  template: 
+    src: hosts.j2 
+    dest: /etc/hosts
+
+# - name: 设置主机名
+#   shell: |
+#     hostnamectl set-hostname {{node_name}}
+
+- name: 安装ipset
+  apt:
+    name: ipset
+    state: present

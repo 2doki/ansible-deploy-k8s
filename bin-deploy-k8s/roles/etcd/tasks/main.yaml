@@ -1,0 +1,47 @@
+---
+
+- name: 创建etcd组件服务目录
+  file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{etcd_path}}/bin"
+    - "{{etcd_path}}/cert"
+    - "{{etcd_path}}/config"
+
+- name: 上传ca证书
+  copy:
+    src: "{{item}}"
+    dest: "{{etcd_path}}/cert"
+  with_items:
+    - ca.pem
+    - etcd.pem
+    - etcd-key.pem
+
+- name: 上传etcd服务组件配置
+  template:
+    src: etcd.service.j2
+    dest: /lib/systemd/system/etcd.service
+
+- name: 上传etcd配置文件
+  template:
+    src: etcd.conf.j2
+    dest: "{{etcd_path}}/config/etcd.conf"
+
+- name: 上传etcd服务程序组件
+  copy:
+    src: "{{item}}"
+    dest: "{{etcd_path}}/bin"
+    mode: "0755"
+  with_items:
+    - etcd
+    - etcdctl
+    - etcdutl
+
+- name: 启动etcd服务组件
+  systemd:
+    name: etcd
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

@@ -1,0 +1,37 @@
+---
+
+- name: 创建生成自签证书目录
+  file:
+    path: "{{cert_path}}"
+    state: directory
+    recurse: yes
+
+- name: 准备自签证书文件
+  template: 
+    src: "{{item}}"
+    dest: "{{cert_path}}/{{item.split('.')[:-1]|join('.')}}"
+  with_items:
+    - ca-csr.json.j2
+    - ca-config.json.j2
+    - etcd-csr.json.j2
+    - kubectl-csr.json.j2
+    - kube-apiserver-csr.json.j2
+    - kube-controller-manager-csr.json.j2
+    - kube-scheduler-csr.json.j2
+    - kube-proxy-csr.json.j2
+
+- name: 准备生成证书的脚本
+  copy: 
+   src: gen_cert.sh 
+   dest: "{{cert_path}}" 
+   mode: u+x
+
+- name: 生成token.csv文件
+  template:
+    src: token.csv.j2
+    dest: "{{cert_path}}/token.csv"
+
+- name: 生成自签证书
+  shell: |
+    cd "{{cert_path}}"
+    /bin/bash gen_cert.sh

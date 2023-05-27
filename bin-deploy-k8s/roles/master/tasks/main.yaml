@@ -1,0 +1,155 @@
+---
+
+- name: 创建k8s组件服务目录
+  file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{k8s_path}}/bin"
+    - "{{k8s_path}}/cert"
+    - "{{k8s_path}}/config"
+
+- name: 上传ca证书
+  copy:
+    src: "{{item}}"
+    dest: "{{k8s_path}}/cert"
+  with_items:
+    - ca.pem
+    - ca-key.pem
+    - etcd.pem
+    - etcd-key.pem
+    - kubectl.pem
+    - kubectl-key.pem
+    - kube-apiserver.pem
+    - kube-apiserver-key.pem
+    - kube-controller-manager.pem
+    - kube-controller-manager-key.pem
+    - kube-scheduler.pem
+    - kube-scheduler-key.pem
+    - token.csv
+
+- name: 上传kube-apiserver服务组件配置
+  template:
+    src: kube-apiserver.conf.j2
+    dest: "{{k8s_path}}/config/kube-apiserver.conf"
+
+- name: 上传kube-apiserver服务组件systemd配置
+  template:
+    src: kube-apiserver.service.j2
+    dest: /lib/systemd/system/kube-apiserver.service
+
+- name: 上传kube-controller-manager服务组件配置
+  template:
+    src: kube-controller-manager.conf.j2
+    dest: "{{k8s_path}}/config/kube-controller-manager.conf"
+
+- name: 上传kube-controller-manager服务组件systemd配置
+  template:
+    src: kube-controller-manager.service.j2
+    dest: /lib/systemd/system/kube-controller-manager.service
+
+- name: 上传kube-scheduler服务组件配置
+  template:
+    src: kube-scheduler.conf.j2
+    dest: "{{k8s_path}}/config/kube-scheduler.conf"
+
+- name: 上传kube-scheduler服务组件systemd配置
+  template:
+    src: kube-scheduler.service.j2
+    dest: /lib/systemd/system/kube-scheduler.service
+
+- name: 上传k8s服务程序组件
+  copy:
+    src: "{{item}}"
+    dest: "{{k8s_path}}/bin"
+    mode: '0755'
+  with_items:
+    - kubectl
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: 启动kube-apiserver组件服务
+  systemd:
+    name: kube-apiserver
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: 启动kube-manager-controller服务组件
+  systemd:
+    name: kube-controller-manager
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: 启动kube-scheduler服务组件
+  systemd:
+    name: kube-scheduler
+    enabled: yes
+    state: restarted
+    daemon_reload: yes
+
+- name: 生成kubectl(admin)配置文件
+  shell: |
+    [ ! -d /root/.kube ] && mkdir ~/.kube
+    {{k8s_path}}/bin/kubectl config set-cluster kubernetes \
+      --certificate-authority={{k8s_path}}/cert/ca.pem \
+      --embed-certs=true \
+      --server=https://{{master_node}}:6443 --kubeconfig=/root/.kube/config
+    {{k8s_path}}/bin/kubectl config set-credentials clusteradmin \
+      --client-certificate={{k8s_path}}/cert/kubectl.pem \ 
+      --client-key={{k8s_path}}/cert/kubectl-key.pem \
+      --embed-certs=true \
+      --kubeconfig=/root/.kube/config
+    {{k8s_path}}/bin/kubectl config set-context kubernetes \
+      --cluster=kubernetes \
+      --user=clusteradmin \
+      --kubeconfig=/root/.kube/config
+    {{k8s_path}}/bin/kubectl config use-context kubernetes \
+      --kubeconfig=/root/.kube/config
+
+- name: 生成kube-controller-manager.kubeconfig配置文件
+  shell: |
+    {{k8s_path}}/bin/kubectl config set-cluster kubernetes \
+      --certificate-authority={{k8s_path}}/cert/ca.pem \
+      --embed-certs=true \
+      --server=https://{{master_node}}:6443 \
+      --kubeconfig={{k8s_path}}/config/kube-controller-manager.kubeconfig
+    {{k8s_path}}/bin/kubectl config set-credentials kube-controller-manager \
+      --client-certificate={{k8s_path}}/cert/kube-controller-manager.pem \
+      --client-key={{k8s_path}}/cert/kube-controller-manager-key.pem \
+      --embed-certs=true \
+      --kubeconfig={{k8s_path}}/config/kube-controller-manager.kubeconfig
+    {{k8s_path}}/bin/kubectl config set-context default \
+      --cluster=kubernetes \
+      --user=kube-controller-manager \
+      --kubeconfig={{k8s_path}}/config/kube-controller-manager.kubeconfig
+    {{k8s_path}}/bin/kubectl config use-context default \
+      --kubeconfig={{k8s_path}}/config/kube-controller-manager.kubeconfig
+
+- name: 生成kube-scheduler.kubeconfig配置文件
+  shell: |
+    {{k8s_path}}/bin/kubectl config set-cluster kubernetes \
+      --certificate-authority={{k8s_path}}/cert/ca.pem \
+      --embed-certs=true \
+      --server=https://{{master_node}}:6443 \
+      --kubeconfig={{k8s_path}}/config/kube-scheduler.kubeconfig
+    {{k8s_path}}/bin/kubectl config set-credentials kube-scheduler \
+      --client-certificate={{k8s_path}}/cert/kube-scheduler.pem \
+      --client-key={{k8s_path}}/cert/kube-scheduler-key.pem \
+      --embed-certs=true \
+      --kubeconfig={{k8s_path}}/config/kube-scheduler.kubeconfig
+    {{k8s_path}}/bin/kubectl config set-context default \
+      --cluster=kubernetes \
+      --user=kube-scheduler \
+      --kubeconfig={{k8s_path}}/config/kube-scheduler.kubeconfig
+    {{k8s_path}}/bin/kubectl config use-context default \
+      --kubeconfig={{k8s_path}}/config/kube-scheduler.kubeconfig
+
+- name: 集群角色绑定
+  shell: |
+    {{k8s_path}}/bin/kubectl create clusterrolebinding kubelet-bootstrap \
+      --clusterrole=system:node-bootstrapper \
+      --user=kubelet-bootstrap

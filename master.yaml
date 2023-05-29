@@ -18,7 +18,7 @@
     - cert
   tags: cert
 
-- name: 部署docker&containerd服务
+- name: 3.部署docker&containerd服务
   gather_facts: false
   become: true
   hosts:
@@ -27,7 +27,7 @@
     - containerd
   tags: containerd
 
-- name: 部署etcd集群
+- name: 4.部署etcd集群
   gather_facts: false
   become: true
   hosts:
@@ -36,7 +36,7 @@
     - etcd
   tags: etcd
 
-- name: 部署k8s-master节点
+- name: 5.部署k8s-master节点
   gather_facts: false
   become: true
   hosts:

@@ -9,7 +9,7 @@
     - comm
   tags: worker
 
-- name: 部署docker&containerd服务
+- name: 2.部署docker&containerd服务
   gather_facts: false
   become: true
   hosts:
@@ -18,7 +18,7 @@
     - containerd
   tags: containerd
 
-- name: 部署k8s-worker节点
+- name: 3.部署k8s-worker节点
   gather_facts: false
   become: true
   hosts:

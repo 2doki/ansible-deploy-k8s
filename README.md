@@ -7,7 +7,6 @@
 - 使用ansible主从模式部署k8s集群
   在ansible主节点上生成k8s证书和k8s相关配置
   在ansible从节点[k8s集群节点]进行k8s集群部署
-- 
 ```
 
 * *使用*

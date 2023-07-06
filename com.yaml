@@ -1,0 +1,28 @@
+---
+
+- name: 1.生成自签证书和配置文件
+  gather_facts: false
+  become: false
+  hosts: 
+    - localhost
+  roles:
+    - cert
+  tags: cert
+
+- name: 2.环境初始化
+  gather_facts: false
+  become: true
+  hosts: 
+    - k8s
+  roles:
+    - base
+  tags: base
+
+- name: 3.安装etcd服务
+  gather_facts: false
+  become: true
+  hosts: 
+    - etcd
+  roles:
+    - etcd
+  tags: etcd

@@ -1,37 +1,44 @@
 ---
 
-- name: 创建生成自签证书目录
+- name: 创建自签证书及配置文件目录
   file:
-    path: "{{cert_path}}"
+    path: "{{tmp_files}}"
     state: directory
     recurse: yes
 
 - name: 准备自签证书文件
-  template: 
-    src: "{{item}}"
-    dest: "{{cert_path}}/{{item.split('.')[:-1]|join('.')}}"
-  with_items:
-    - ca-csr.json.j2
-    - ca-config.json.j2
-    - etcd-csr.json.j2
-    - kubectl-csr.json.j2
-    - kube-apiserver-csr.json.j2
-    - kube-controller-manager-csr.json.j2
-    - kube-scheduler-csr.json.j2
-    - kube-proxy-csr.json.j2
-
-- name: 准备生成证书的脚本
   copy: 
-   src: gen_cert.sh 
-   dest: "{{cert_path}}" 
-   mode: u+x
+    src: "{{item}}"
+    dest: "{{tmp_files}}/{{item}}"
+  with_items:
+    - admin-csr.json
+    - apiserver-csr.json
+    - ca-config.json
+    - ca-csr.json
+    - controller-manager-csr.json
+    - etcd-ca-csr.json
+    - etcd-csr.json
+    - front-proxy-ca-csr.json
+    - front-proxy-client-csr.json
+    - kube-proxy-csr.json
+    - scheduler-csr.json
 
-- name: 生成token.csv文件
-  template:
-    src: token.csv.j2
-    dest: "{{cert_path}}/token.csv"
+- name: 准备自签证书脚本
+  template: 
+    src: gen_cert.bash.j2 
+    dest: "{{tmp_files}}/gen_cert.bash" 
 
-- name: 生成自签证书
+- name: 生成自签证书文件
   shell: |
-    cd "{{cert_path}}"
-    /bin/bash gen_cert.sh
+    cd "{{tmp_files}}"
+    /usr/bin/bash gen_cert.bash
+
+- name: 准备配置文件脚本
+  template:
+    src: gen_kubeconfig.bash.j2
+    dest: "{{tmp_files}}/gen_kubeconfig.bash"
+
+- name: 生成配置文件
+  shell: |
+    cd "{{tmp_files}}"
+    /usr/bin/bash gen_kubeconfig.bash

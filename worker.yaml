@@ -1,28 +1,28 @@
 ---
 
-- name: 1.系统环境初始化
-  gather_facts: false
-  become: false
-  hosts: 
-    - worker
-  roles:
-    - comm
-  tags: worker
-
-- name: 2.部署docker&containerd服务
+- name: 1.安装containerd服务
   gather_facts: false
   become: true
   hosts:
-    - worker
+    - k8s
   roles:
     - containerd
   tags: containerd
 
-- name: 3.部署k8s-worker节点
+- name: 2.安装kubelet服务
   gather_facts: false
   become: true
   hosts:
-    - worker
+    - k8s
   roles:
-    - worker
-  tags: worker
+    - kubelet
+  tags: kubelet
+
+- name: 3.安装kube-proxy服务
+  gather_facts: false
+  become: true
+  hosts:
+    - k8s
+  roles:
+    - kube_proxy
+  tags: kube_proxy

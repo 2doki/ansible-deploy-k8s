@@ -1,29 +1,47 @@
 ---
 
-# 集群token
-cluster_token: 6e4db8778bd2169cacbc1e611363c9c8
 
-# 自签证书准备目录
-cert_path: ./ssl
-k8s_path: /usr/local/k8s
-etcd_path: /usr/local/etcd
+# 自签证书及配置文件目录
+tmp_files: ./tmp_files
 
-# 集群网络
-cluster_cidr: 10.0.0.0/24
-cluster_dns: 10.0.0.2   # 与roles/addons/files/coredns.yaml中IP一致，并且是cluster_cidr中的IP
-pod_cidr: 10.244.0.0/16 # 与roles/addons/files/calico.yaml中网段一致
-service_nodeport_range: 30000-32767
-cluster_domain: cluster.local
+# master ip,根据实际情况调整
+master_ip: 192.168.165.81
 
-# 生成kubeconfig文件
-master_node: 192.168.165.81
+# cluster ip,根据实际情况调整
+cluster_ip: 10.0.0.0
 
-# 自签证书ip
-cert_ips:
-  # 多主节点在此添加主机ip到k8s
-  k8s:
-    - 10.0.0.1
-    - 192.168.165.81
-  # 多etcd在此添加主机ip到etcd
-  etcd:
-    - 192.168.165.81
+# cluster cidr
+cluster_cidr: 10.244.0.0
+
+# cluster dns
+cluster_dns: 10.0.0.10
+
+# token ID, 可以自行生成
+bootstrap_token_id: c8ad9c
+bootstrap_token: 2e4d610cf3e7426e 
+
+
+# 自签etcd证书时hostname参数值
+# etcd在master节点上(hostname => k8s-master-01)
+# 根据实际情况调整
+etcd_host:
+  - 127.0.0.1
+  - k8s-master-01
+  - 192.168.165.81
+
+# 自签kube-apiserver证书时hostname参数值
+# 根据实际情况调整
+apiserver_host:
+  - 10.0.0.1
+  - 127.0.0.1
+  - kubernetes
+  - kubernetes.default
+  - kubernetes.default.svc
+  - kubernetes.default.svc.cluster
+  - kubernetes.default.svc.cluster.local
+  - x.oiox.cn
+  - k.oiox.cn
+  - l.oiox.cn
+  - o.oiox.cn
+  - 192.168.165.81
+  - k8s-master-01

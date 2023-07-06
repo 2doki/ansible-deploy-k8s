@@ -1,0 +1,36 @@
+---
+
+- name: 上传kube-proxy相关证书
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/k8s/cert
+  with_items:
+    - kube-proxy-key.pem
+    - kube-proxy.pem
+
+- name: 上传kube-proxy配置文件
+  copy:
+    src: kube-proxy.kubeconfig
+    dest: /usr/local/k8s/config
+
+- name: 上传kube-proxy.yaml配置
+  template:
+    src: kube-proxy.yaml.j2
+    dest: /usr/local/k8s/config/kube-proxy.yaml
+
+- name: 上传kube-proxy服务配置
+  template:
+    src: kube-proxy.service.j2
+    dest: /lib/systemd/system/kube-proxy.service
+
+- name: 上传kube-proxy服务组件
+  copy:
+    src: kube-proxy
+    dest: /usr/local/bin
+
+- name: 启动kube-proxy服务组件
+  systemd:
+    name: kube-proxy
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

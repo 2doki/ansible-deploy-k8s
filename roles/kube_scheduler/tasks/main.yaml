@@ -1,0 +1,31 @@
+---
+
+- name: 上传scheduler相关证书
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/k8s/cert
+  with_items:
+    - scheduler-key.pem
+    - scheduler.pem
+
+- name: 上传scheduler配置文件
+  copy:
+    src: scheduler.kubeconfig
+    dest: /usr/local/k8s/config
+
+- name: 上传scheduler服务配置
+  template:
+    src: kube-scheduler.service.j2
+    dest: /lib/systemd/system/kube-scheduler.service
+
+- name: 上传scheduler服务组件
+  copy:
+    src: kube-scheduler
+    dest: /usr/local/bin
+
+- name: 启动scheduler服务组件
+  systemd:
+    name: kube-scheduler
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

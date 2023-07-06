@@ -1,34 +1,37 @@
 ---
 
-# - name: 安装docker和containerd-io
-#   shell: |
-#     apt install -y docker-ce docker-ce-cli containerd.io
-
-- name: 安装docker和containerd
-  apt:
-    name: "{{ item }}"
-    state: present
+- name: 上传containerd服务二进制文件
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/bin
   with_items:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
+    - containerd
+    - containerd-shim   
+    - containerd-shim-runc-v1  
+    - containerd-shim-runc-v2  
+    - containerd-stress
+    - ctr
+    - crictl
 
-- name: 添加containerd配置文件
+- name: 上传containerd服务配置文件
+  copy:
+    src: containerd.service
+    dest: /lib/systemd/system
+
+- name: 上传containerd配置文件
   copy:
     src: config.toml
-    dest: /etc/containerd/config.toml
+    dest: /etc/containerd/
 
-- name: 启动docker服务
-  systemd:
-    name: docker
-    state: restarted
-    enabled: yes
-    daemon_reload: yes
+- name: 上传containerd代理配置
+  copy:
+    src: hosts.toml
+    dest: /etc/containerd/certs.d/docker.io/
 
-- name: 启动containerd服务
+- name: 启动containerd服务组件
   systemd:
     name: containerd
-    state: restarted
     enabled: yes
+    state: restarted
     daemon_reload: yes
   

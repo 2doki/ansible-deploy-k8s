@@ -1,0 +1,3 @@
+server = "https://docker.io"
+[host."https://hub-mirror.c.163.com"]
+  capabilities = ["pull", "resolve"]

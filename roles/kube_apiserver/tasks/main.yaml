@@ -1,0 +1,50 @@
+---
+
+- name: 上传apiserver相关证书证书
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/k8s/cert
+  with_items:
+    - apiserver-key.pem
+    - apiserver.pem
+    - ca-key.pem
+    - ca.pem
+    - front-proxy-ca-key.pem
+    - front-proxy-ca.pem
+    - front-proxy-client-key.pem
+    - front-proxy-client.pem
+
+- name: 上传apisever相关配置
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/k8s/config
+  with_items:
+    - admin.kubeconfig
+
+- name: 上传sa公私钥
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/k8s/cert
+  with_items:
+    - sa.key
+    - sa.pub
+
+- name: 上传apiserver服务配置
+  template:
+    src: kube-apiserver.service.j2
+    dest: /lib/systemd/system/kube-apiserver.service
+
+- name: 上传apiserver服务组件
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/bin
+  with_items:
+    - kubectl
+    - kube-apiserver
+
+- name: 启动apiserver服务组件
+  systemd:
+    name: kube-apiserver
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

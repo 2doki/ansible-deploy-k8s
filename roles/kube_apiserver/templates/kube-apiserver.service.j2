@@ -1,0 +1,47 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/kube-apiserver \
+      --v=2  \
+      --allow-privileged=true  \
+      --bind-address=0.0.0.0  \
+      --secure-port=6443  \
+      --advertise-address={{master_ip}} \
+      --service-cluster-ip-range={{cluster_ip}}/24  \
+      --service-node-port-range=30000-32767  \
+      --etcd-servers=https://{{master_ip}}:2379 \
+      --etcd-cafile=/usr/local/etcd/cert/etcd-ca.pem  \
+      --etcd-certfile=/usr/local/etcd/cert/etcd.pem  \
+      --etcd-keyfile=/usr/local/etcd/cert/etcd-key.pem  \
+      --client-ca-file=/usr/local/k8s/cert/ca.pem  \
+      --tls-cert-file=/usr/local/k8s/cert/apiserver.pem  \
+      --tls-private-key-file=/usr/local/k8s/cert/apiserver-key.pem  \
+      --kubelet-client-certificate=/usr/local/k8s/cert/apiserver.pem  \
+      --kubelet-client-key=/usr/local/k8s/cert/apiserver-key.pem  \
+      --service-account-key-file=/usr/local/k8s/cert/sa.pub  \
+      --service-account-signing-key-file=/usr/local/k8s/cert/sa.key  \
+      --service-account-issuer=https://kubernetes.default.svc.cluster.local \
+      --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname  \
+      --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,ResourceQuota  \
+      --authorization-mode=Node,RBAC  \
+      --enable-bootstrap-token-auth=true  \
+      --requestheader-client-ca-file=/usr/local/k8s/cert/front-proxy-ca.pem  \
+      --proxy-client-cert-file=/usr/local/k8s/cert/front-proxy-client.pem  \
+      --proxy-client-key-file=/usr/local/k8s/cert/front-proxy-client-key.pem  \
+      --requestheader-allowed-names=aggregator  \
+      --requestheader-group-headers=X-Remote-Group  \
+      --requestheader-extra-headers-prefix=X-Remote-Extra-  \
+      --requestheader-username-headers=X-Remote-User \
+      --enable-aggregator-routing=true
+      # --feature-gates=IPv6DualStack=true
+      # --token-auth-file=/etc/kubernetes/token.csv
+
+Restart=on-failure
+RestartSec=10s
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

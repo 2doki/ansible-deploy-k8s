@@ -1,0 +1,77 @@
+---
+
+- name: 设置主机名
+  shell: |
+    hostnamectl set-hostname {{node_name}}
+
+- name: 时间同步
+  shell: |
+    apt install ntpdate
+    timedatectl set-timezone Asia/Shanghai
+    echo "* * * * * /usr/sbin/ntpdate ntp.aliyun.com >/dev/null 2>&1 &" >/var/spool/cron/crontabs/root
+
+- name: 交换分区禁用
+  shell: |
+    swapoff -a && sysctl -w vm.swappiness=0
+    sed -i '/swap.img/d' /etc/fstab
+
+- name: 关闭ufw
+  shell: |
+    systemctl disable --now ufw
+
+- name: 安装ipvsadm
+  shell: |
+    apt install -y  ipvsadm ipset sysstat conntrack
+
+- name: 上传k8s.conf配置文件
+  copy:
+    src: k8s.conf
+    dest: /etc/sysctl.d/k8s.conf
+
+- name: 上传limits.conf配置文件
+  copy:
+    src: limits.conf
+    dest: /etc/security/limits.conf
+
+- name: 内核参数生效
+  shell: |
+    sysctl --system
+
+- name: 配置hosts本地解析
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: 创建etcd组件服务目录
+  file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  with_items:
+    - /usr/local/etcd/cert
+    - /usr/local/etcd/config
+
+- name: 创建k8s组件服务目录
+  file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  with_items:
+    - /usr/local/k8s/cert
+    - /usr/local/k8s/config
+    - /usr/local/k8s/manifests
+
+- name: 创建cni所需目录
+  shell: |
+    mkdir -p /etc/cni/net.d /opt/cni/bin 
+
+
+- name: 上传cni二进制包
+  copy:
+    src: cni-plugins-linux-amd64-v1.1.1.tgz
+    dest: /opt
+
+
+# - name: 解压cni二进制包
+#   shell: |
+#     tar xf /opt/cni-plugins-linux-amd64-v*.tgz -C /opt/cni/bin/

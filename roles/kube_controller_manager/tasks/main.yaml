@@ -1,0 +1,31 @@
+---
+
+- name: 上传controller-manager相关证书
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/k8s/cert
+  with_items:
+    - controller-manager-key.pem
+    - controller-manager.pem
+
+- name: 上传controller-manager配置文件
+  copy:
+    src: controller-manager.kubeconfig
+    dest: /usr/local/k8s/config
+
+- name: 上传controller-manager服务配置
+  template:
+    src: kube-controller-manager.service.j2
+    dest: /lib/systemd/system/kube-controller-manager.service
+
+- name: 上传controller-manager服务组件
+  copy:
+    src: kube-controller-manager
+    dest: /usr/local/bin
+
+- name: 启动controller-manager服务组件
+  systemd:
+    name: kube-controller-manager
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

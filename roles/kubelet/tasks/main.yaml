@@ -1,0 +1,33 @@
+---
+
+- name: 上传kubelet配置文件
+  copy:
+    src: bootstrap-kubelet.kubeconfig
+    dest: /usr/local/k8s/config
+
+- name: 上传resolv.conf配置文件
+  copy:
+    src: resolv.conf
+    dest: /usr/local/k8s/config
+
+- name: 上传kubelet-conf.yaml配置文件
+  template:
+    src: kubelet-conf.yaml.j2
+    dest: /usr/local/k8s/config/kubelet-conf.yaml
+
+- name: 上传kubelet服务配置
+  template:
+    src: kubelet.service.j2
+    dest: /lib/systemd/system/kubelet.service
+
+- name: 上传kubelet服务组件
+  copy:
+    src: kubelet
+    dest: /usr/local/bin
+
+- name: 启动kubelet服务组件
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

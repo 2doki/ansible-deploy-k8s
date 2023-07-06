@@ -1,0 +1,84 @@
+#!/usr/bin/bash
+
+# etcd证书
+cfssl gencert -initca etcd-ca-csr.json | cfssljson -bare etcd-ca
+cfssl gencert -ca=etcd-ca.pem -ca-key=etcd-ca-key.pem -config=ca-config.json  \
+    -hostname={% for host in etcd_host %}{{host}}{% if not loop.last %},{% endif %}{% endfor %}  \
+    -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+
+
+# kube-apiserver证书
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json  \
+    -hostname={% for host in apiserver_host %}{{host}}{% if not loop.last %},{% endif %}{% endfor %}   \
+    -profile=kubernetes apiserver-csr.json | cfssljson -bare apiserver
+
+
+# front-proxy-client证书
+cfssl gencert -initca front-proxy-ca-csr.json | cfssljson -bare front-proxy-ca
+cfssl gencert -ca=front-proxy-ca.pem   \
+    -ca-key=front-proxy-ca-key.pem   \
+    -config=ca-config.json   \
+    -profile=kubernetes front-proxy-client-csr.json | cfssljson -bare front-proxy-client
+
+
+# controller-manager证书
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes \
+    controller-manager-csr.json | cfssljson -bare controller-manager
+
+
+# scheduler证书
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes \
+   scheduler-csr.json | cfssljson -bare scheduler
+
+
+# admin[kubectl]证书
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes \
+   admin-csr.json | cfssljson -bare admin
+
+
+# kube-proxy证书
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes \
+   kube-proxy-csr.json | cfssljson -bare kube-proxy
+
+
+openssl genrsa -out sa.key 2048
+openssl rsa -in sa.key -pubout -out sa.pub
+
+
+## 拷贝etcd证书到角色文件目录
+if [[ ! -d ../roles/etcd/files ]];then
+    mkdir -p ../roles/etcd/files
+fi
+cp etcd*.pem ../roles/etcd/files
+
+
+## 拷贝kube-apiserver证书到角色文件目录
+if [[ ! -d ../roles/kube_apiserver/files ]];then
+    mkdir -p ../roles/kube_apiserver/files
+fi
+cp sa.* ../roles/kube_apiserver/files
+cp ca*.pem ../roles/kube_apiserver/files
+cp apiserver*.pem ../roles/kube_apiserver/files
+cp front-proxy-c*.pem ../roles/kube_apiserver/files
+
+
+## 拷贝kube-controller-manager证书到角色文件目录
+if [[ ! -d ../roles/kube_controller_manager/files ]];then
+    mkdir -p ../roles/kube_controller_manager/files
+fi
+cp controller-manager*.pem ../roles/kube_controller_manager/files
+
+
+## 拷贝kube-scheduler证书到角色文件目录
+if [[ ! -d ../roles/kube_scheduler/files ]];then
+    mkdir -p ../roles/kube_scheduler/files
+fi
+cp scheduler*.pem ../roles/kube_scheduler/files
+
+
+## 拷贝kube-proxy证书到角色文件目录
+if [[ ! -d ../roles/kube_proxy/files ]];then
+    mkdir -p ../roles/kube_proxy/files
+fi
+cp kube-proxy*.pem ../roles/kube_proxy/files

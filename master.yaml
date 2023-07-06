@@ -1,46 +1,28 @@
 ---
 
-- name: 1.系统环境初始化
-  gather_facts: false
-  become: true
-  hosts:
-    - k8s
-  roles:
-    - comm
-  tags: comm
-
-- name: 2.自签认证证书
-  gather_facts: false
-  become: false
-  hosts: 
-    - localhost
-  roles:
-    - cert
-  tags: cert
-
-- name: 3.部署docker&containerd服务
-  gather_facts: false
-  become: true
-  hosts:
-    - k8s
-  roles:
-    - containerd
-  tags: containerd
-
-- name: 4.部署etcd集群
-  gather_facts: false
-  become: true
-  hosts:
-    - etcd
-  roles:
-    - etcd
-  tags: etcd
-
-- name: 5.部署k8s-master节点
+- name: 1.安装kube-apiserver服务
   gather_facts: false
   become: true
   hosts:
     - master
   roles:
+    - kube_apiserver
+  tags: kube_apiserver
+
+- name: 2.安装kube-controller-manager服务
+  gather_facts: false
+  become: true
+  hosts:
     - master
-  tags: master
+  roles:
+    - kube_controller_manager
+  tags: kube_controller_manager
+
+- name: 3.安装kube-scheduler服务
+  gather_facts: false
+  become: true
+  hosts:
+    - master
+  roles:
+    - kube_scheduler
+  tags: kube_scheduler

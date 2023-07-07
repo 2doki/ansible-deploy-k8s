@@ -6,6 +6,11 @@
     state: directory
     recurse: yes
 
+- name: 准备boostrap.secret.yaml文件
+  template:
+    src: bootstrap.secret.yaml.j2
+    dest: "{{tmp_files}}/bootstrap.secret.yaml"
+
 - name: 准备自签证书文件
   copy: 
     src: "{{item}}"

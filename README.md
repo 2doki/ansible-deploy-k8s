@@ -15,6 +15,11 @@
 ```
 - 根据实际情况调整项目目录下的hosts文件配置和group_vars/all.yaml中的配置
 
+- 测试 playbook
+  ansible-playbook --check com.yaml
+  ansible-playbook --check master.yaml
+  ansible-playbook --check worker.yaml
+
 - 依次运行:
   ansible-playbook com.yaml
   ansible-playbook master.yaml
@@ -33,4 +38,25 @@
 - 解压示例: upx -d etcd
 
 - 压缩后的可执行文件可能会有性能上的损失
+```
+
+* **以下步骤需要在安装完成后在k8s节点上执行**
+```
+kubectl config set-cluster kubernetes     \
+--certificate-authority=/usr/local/k8s/cert//ca.pem     \
+--embed-certs=true     --server=https://127.0.0.1:6443     \
+--kubeconfig=/usr/local/k8s/config/bootstrap-kubelet.kubeconfig
+
+kubectl config set-credentials tls-bootstrap-token-user     \
+--token=c8ad9c.2e4d610cf3e7426e \
+--kubeconfig=/usr/local/k8s/config/bootstrap-kubelet.kubeconfig
+
+
+kubectl config set-context tls-bootstrap-token-user@kubernetes     \
+--cluster=kubernetes     \
+--user=tls-bootstrap-token-user     \
+--kubeconfig=/usr/local/k8s/config/bootstrap-kubelet.kubeconfig
+
+kubectl config use-context tls-bootstrap-token-user@kubernetes     \
+--kubeconfig=/usr/local/k8s/config/bootstrap-kubelet.kubeconfig
 ```
